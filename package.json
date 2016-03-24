@@ -1,0 +1,31 @@
+{
+  "name": "datastorage",
+  "description": "Persistent object cache and data storage",
+  "keywords": [
+    "json datastorage"
+  ],
+  "version": "0.0.1",
+  "homepage": "http://www.swagman.org/",
+  "author": {
+    "name": "Jussi Ohenoja",
+    "email": "juice@swagman.org",
+    "url": "http://www.swagman.org/juice/datastorage/"
+  },
+  "license": "GPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/juiceme/datastorage.git"
+  },
+  "bugs": {
+    "url": "http://github.com/juiceme/datastorage/issues"
+  },
+  "devDependencies": {
+  },
+  "dependencies": {
+  },
+  "scripts": {
+  },
+  "engine": [
+    "node >= v0.10.0"
+  ]
+}
