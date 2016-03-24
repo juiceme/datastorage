@@ -20,7 +20,7 @@ Datasrorage has no external dependencies.
 * Probably more enhancements as I think them up :)
     
 ## Documentation
-
+```
 var dataStorage = require("./datastorage");
 dataStorage.initialize("objectName");
 dataStorage.info("objectName");
@@ -29,6 +29,7 @@ dataStorage.write("objectName", dataObject);
 dataStorage.backup();
 dataStorage.flush();
 dataStorage.setLogger(loggerFunction);
+```
 
 ## License
 
