@@ -22,7 +22,7 @@ Datasrorage has no external dependencies.
 ## Documentation
 ```
 var dataStorage = require("./datastorage");
-dataStorage.initialize("objectName");
+dataStorage.initialize("objectName", templateObject);
 dataStorage.info("objectName");
 dataStorage.read("objectName");
 dataStorage.write("objectName", dataObject);

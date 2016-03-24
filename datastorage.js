@@ -25,8 +25,8 @@ function writeConfigurationfile(storage, content) {
     }
 }
 
-function createConfigurationfile(storage) {
-    writeConfigurationfile(storage, JSON.stringify({}));
+function createConfigurationfile(storage, template) {
+    writeConfigurationfile(storage, JSON.stringify(template));
 }
 
 function checkConfigurationDirectory() {
@@ -51,15 +51,15 @@ function checkConfigurationDirectory() {
 
 }
 
-function getStorageFileContent(storage) {
+function getStorageFileContent(storage, template) {
     checkConfigurationDirectory();
     try {
 	content = fs.readFileSync("./configuration/" + storage + ".json");
 	return(JSON.parse(content));
     } catch(err) {
 	if(err.code === "ENOENT") {
-	    createConfigurationfile(storage);
-	    return {};
+	    createConfigurationfile(storage, template);
+	    return template;
 	} else {
 	    // log error and exit
 	    console.log("Error accessing configuration  " + err);
@@ -87,10 +87,13 @@ function serviceLog(info) {
 
 // Exports //
 
-function initialize(storage) {
+function initialize(storage, template) {
+    if(typeof(template) !== "object") {
+	template = {};
+    }
     if(!isStorageInitialized(storage)) {
 	serviceLog("Creating storage space " + storage);
-	storageList.push({ file: storage, content: getStorageFileContent(storage) });
+	storageList.push({ file: storage, content: getStorageFileContent(storage, template) });
 	return true;
     } else {
 	serviceLog("Storage space " + storage + " already initialized");
