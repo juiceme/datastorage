@@ -4,12 +4,20 @@ datastorage = require("./datastorage");
 
 function myLogger(logline) { console.log((new Date()) + " --- " + logline); };
 
+// enable logs by uncommenting the line below;
 // datastorage.setLogger(myLogger);
 
-try { fs.unlinkSync("configuration/luusto.json"); } catch(err) {};
-try { fs.unlinkSync("configuration/juusto.json"); } catch(err) {};
+// delete all config files
+try { fs.readdirSync("configuration/backup")
+      .forEach(function(s) { fs.unlinkSync("configuration/backup/" + s); });
+    } catch(err) {};
+try { fs.rmdirSync("configuration/backup"); } catch(err) {};
+try { fs.readdirSync("configuration")
+      .forEach(function(s) { fs.unlinkSync("configuration/" + s); });
+    } catch(err) {};
 try { fs.rmdirSync("configuration"); } catch(err) {};
 
+// run tests with assert
 try {
     // uninitialized storages access:
     assert(datastorage.write("luusto", {varpaat:5, polvet:2}) === false,

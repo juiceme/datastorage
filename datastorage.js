@@ -4,13 +4,14 @@ var storageList = [];
 var flushTimeOut;
 var flushTimeoutMilliseconds = 2000;
 var SystemLogger;
+var runOnce = true;
 
-function createConfigurationDirectory() {
+function createDirectory(directory) {
     try {
-	fs.mkdirSync("./configuration");
-	serviceLog("Created storage directory");
+	fs.mkdirSync("./" + directory);
+	serviceLog("Created directory " + directory);
     } catch(err) {
-	console.log("Error creating configuration directory " + err);
+	console.log("Error creating directory " + directory + " : " + err);
 	process.exit(1);
     }
 }
@@ -30,22 +31,22 @@ function createConfigurationfile(storage, template) {
     writeConfigurationfile(storage, JSON.stringify(template));
 }
 
-function checkConfigurationDirectory() {
+function checkDirectory(directory) {
     try {
-	if(fs.statSync("./configuration").isDirectory() === true) {
-	    serviceLog("Storage directory exists");
+	if(fs.statSync("./" + directory).isDirectory() === true) {
+	    serviceLog("Storage directory " + directory + " exists");
 	    return true;
 	} else {
-	    console.log("Error; configuration directory is a file");
+	    console.log("Error; directory " + directory + " is a file");
 	    process.exit(1);
 	}
     } catch(err) {
 	if(err.code === "ENOENT") {
-	    createConfigurationDirectory();
+	    createDirectory(directory);
 	    return true;
 	} else {
 	    // log error and exit
-	    console.log("Error accessing configuration directory " + err);
+	    console.log("Error accessing directory " + directory + " : " + err);
 	    process.exit(1);
 	}
     }
@@ -53,7 +54,7 @@ function checkConfigurationDirectory() {
 }
 
 function getStorageFileContent(storage, template) {
-    checkConfigurationDirectory();
+    checkDirectory("configuration");
     try {
 	content = fs.readFileSync("./configuration/" + storage + ".json");
 	return(JSON.parse(content));
@@ -89,9 +90,15 @@ function serviceLog(info) {
 // Exports //
 
 function initialize(storage, template) {
-    if(typeof(template) !== "object") {
-	template = {};
+    if(runOnce) {
+	runOnce = false;
+	backup();
     }
+    if(typeof(storage) === "undefined") {
+	serviceLog("Cannot initialize undefined storage space");
+	return false;
+    }
+    if(typeof(template) !== "object") {	template = {}; }
     if(!isStorageInitialized(storage)) {
 	serviceLog("Creating storage space " + storage);
 	storageList.push({ file: storage, content: getStorageFileContent(storage, template) });
@@ -136,7 +143,25 @@ function info() {
 }
 
 function backup() {
-    serviceLog("Backed up storage spaces");
+    checkDirectory("configuration");
+    checkDirectory("configuration/backup");
+    now = new Date().toJSON();
+    var count = 0;
+    try {
+        fs.readdirSync("./configuration")
+	    .filter(function(f) {
+		return (f.indexOf("json") > 0)
+	    }).forEach(function(s) {
+		count++;
+		fs.createReadStream("./configuration/" + s)
+		    .pipe(fs.createWriteStream("./configuration/backup/" + now + "_" + s));
+	    });
+    } catch(err) {
+	// log error and exit
+	console.log("Error backing up files " + err);
+	process.exit(1);
+    }
+    serviceLog("Backed up " + count + " storage spaces");
 }
 
 function flush() {
