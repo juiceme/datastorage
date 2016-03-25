@@ -2,6 +2,7 @@ var fs = require("fs");
 
 var storageList = [];
 var flushTimeOut;
+var flushTimeoutMilliseconds = 2000;
 var SystemLogger;
 
 function createConfigurationDirectory() {
@@ -125,7 +126,7 @@ function write(storage, newContent) {
     clearTimeout(flushTimeOut);
     flushTimeOut = setTimeout(function() {
 	flush();
-    }, 2000);
+    }, flushTimeoutMilliseconds);
 
     return true;
 }
