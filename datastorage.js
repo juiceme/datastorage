@@ -28,7 +28,7 @@ function writeConfigurationfile(storage, content) {
 }
 
 function createConfigurationfile(storage, template) {
-    writeConfigurationfile(storage, JSON.stringify(template));
+    writeConfigurationfile(storage, template);
 }
 
 function checkDirectory(directory) {
