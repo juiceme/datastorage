@@ -16,10 +16,10 @@ function createDirectory(directory) {
     }
 }
 
-function writeConfigurationfile(storage, content) {
+function writeConfigurationFile(storage, content, createBackups) {
     try {
-	var contentString = JSON.stringify(content) 
-	fs.writeFileSync("./configuration/" + storage + ".json", contentString);
+	var contentString = JSON.stringify({ file:storage, backup:createBackups, content:content });
+	fs.writeFileSync("./configuration/" + storage + ".json", contentString + "\n");
 	serviceLog("Wrote to storage space " + storage + ": " + contentString);
     } catch(err) {
 	console.log("Error writing to configuration file " + err);
@@ -27,8 +27,8 @@ function writeConfigurationfile(storage, content) {
     }
 }
 
-function createConfigurationfile(storage, template) {
-    writeConfigurationfile(storage, template);
+function createConfigurationFile(storage, template, createBackups) {
+    writeConfigurationFile(storage, template, createBackups);
 }
 
 function checkDirectory(directory) {
@@ -53,15 +53,15 @@ function checkDirectory(directory) {
 
 }
 
-function getStorageFileContent(storage, template) {
+function getStorageFileContent(storage, template, createBackups) {
     checkDirectory("configuration");
     try {
 	content = fs.readFileSync("./configuration/" + storage + ".json");
 	return(JSON.parse(content));
     } catch(err) {
 	if(err.code === "ENOENT") {
-	    createConfigurationfile(storage, template);
-	    return template;
+	    createConfigurationFile(storage, template, createBackups);
+	    return { file:storage, backup:createBackups, content:template }
 	} else {
 	    // log error and exit
 	    console.log("Error accessing configuration  " + err);
@@ -89,7 +89,7 @@ function serviceLog(info) {
 
 // Exports //
 
-function initialize(storage, template) {
+function initialize(storage, template, createBackups) {
     if(runOnce) {
 	runOnce = false;
 	backup();
@@ -98,10 +98,11 @@ function initialize(storage, template) {
 	serviceLog("Cannot initialize undefined storage space");
 	return false;
     }
-    if(typeof(template) !== "object") {	template = {}; }
+    if(typeof(createBackups) !== "boolean" ) { createBackups = false; }
+    if(typeof(template) !== "object") { template = {}; }
     if(!isStorageInitialized(storage)) {
 	serviceLog("Creating storage space " + storage);
-	storageList.push({ file: storage, content: getStorageFileContent(storage, template) });
+	storageList.push(getStorageFileContent(storage, template, createBackups));
 	return true;
     } else {
 	serviceLog("Storage space " + storage + " already initialized");
@@ -125,10 +126,9 @@ function write(storage, newContent) {
 	serviceLog("Cannot write to uninitialized storage space " + storage);
 	return false;
     }
-    var newList = storageList.filter(function(s) {
-	return (s.file !== storage);
-    });
-    newList.push({ file: storage, content: newContent })
+    var oldItem = storageList.filter(function(s) { return (s.file === storage); })[0];
+    var newList = storageList.filter(function(s) { return (s.file !== storage); });
+    newList.push({ file: storage, backup:oldItem.backup, content: newContent })
     storageList = newList;
     clearTimeout(flushTimeOut);
     flushTimeOut = setTimeout(function() {
@@ -145,30 +145,36 @@ function info() {
 function backup() {
     checkDirectory("configuration");
     checkDirectory("configuration/backup");
-    now = new Date().toJSON();
-    var count = 0;
+    now = new Date().toJSON().replace(/\:/g, ".");
+    var countAll = 0;
+    var countBackups = 0;
     try {
         fs.readdirSync("./configuration")
 	    .filter(function(f) {
 		return (f.indexOf("json") > 0)
 	    }).forEach(function(s) {
-		count++;
-		fs.createReadStream("./configuration/" + s)
-		    .pipe(fs.createWriteStream("./configuration/backup/" + now + "_" + s));
+		countAll++;
+		var content = JSON.parse(fs.readFileSync("./configuration/" + s));
+		if(content.backup === true) {
+		    countBackups++;
+		    fs.createReadStream("./configuration/" + s)
+			.pipe(fs.createWriteStream("./configuration/backup/" + now + "_" + s));
+		    }
 	    });
     } catch(err) {
 	// log error and exit
 	console.log("Error backing up files " + err);
 	process.exit(1);
     }
-    serviceLog("Backed up " + count + " storage spaces");
+    serviceLog("Checked " + countAll + " files and backed up " + countBackups + " storage spaces.");
+    return true;
 }
 
 function flush() {
     var flushCount = 0;
     storageList.forEach(function(s) {
 	flushCount++;
-	writeConfigurationfile(s.file, s.content);
+	writeConfigurationFile(s.file, s.content, s.backup);
     });
     serviceLog("Flushed " + flushCount + " storage spaces too disk");
 }
