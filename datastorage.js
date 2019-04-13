@@ -184,6 +184,7 @@ function setLogger(logger) {
 }
 
 module.exports.initialize = initialize;
+module.exports.isInitialized = isStorageInitialized;
 module.exports.info = info;
 module.exports.read = read;
 module.exports.write = write;

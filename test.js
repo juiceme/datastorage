@@ -26,12 +26,16 @@ try {
 	   "Uninitialized read should fail");
     assert(datastorage.info().length === 0,
 	   "Uninitialized info should be empty");
+    assert(datastorage.isInitialized("luusto") === false,
+	   "Query on uninitialized storage should return false");
 
     // initialize storages:
     assert(datastorage.initialize("luusto") === true,
 	   "First initialize should succeed");
     assert(datastorage.initialize("juusto", {default: "emmental"}) === true,
 	   "First initialize with template should succeed");
+    assert(datastorage.isInitialized("luusto") === true,
+	   "Query on initialized storage should return true");
 
     // initialized storages access:
     assert(Object.keys(datastorage.read("luusto")).length === 0,
