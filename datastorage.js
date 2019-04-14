@@ -50,7 +50,6 @@ function checkDirectory(directory) {
 	    process.exit(1);
 	}
     }
-
 }
 
 function getStorageFileContent(storage, template, createBackups) {
@@ -134,7 +133,23 @@ function write(storage, newContent) {
     flushTimeOut = setTimeout(function() {
 	flush();
     }, flushTimeoutMilliseconds);
+    return true;
+}
 
+function deleteStorage(storage)
+{
+    if(!isStorageInitialized(storage)) {
+	serviceLog("Cannot delete uninitialized storage space " + storage);
+	return false;
+    }
+    var newList = storageList.filter(function(s) { return (s.file !== storage); });
+    storageList = newList;
+    if(fs.existsSync("./configuration/" + storage + ".json") !== true) {
+	serviceLog("Cannot delete nonexistent storage space file " + storage + ".json");
+	return false;
+    }
+    fs.unlinkSync("./configuration/" + storage + ".json");
+    serviceLog("Deleted storage space " + storage);
     return true;
 }
 
@@ -188,6 +203,7 @@ module.exports.isInitialized = isStorageInitialized;
 module.exports.info = info;
 module.exports.read = read;
 module.exports.write = write;
+module.exports.deleteStorage = deleteStorage;
 module.exports.backup = backup;
 module.exports.flush = flush;
 module.exports.setLogger = setLogger;

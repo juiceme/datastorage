@@ -26,9 +26,11 @@ dataStorage.initialize("objectName", templateObject);
 dataStorage.info("objectName");
 dataStorage.read("objectName");
 dataStorage.write("objectName", dataObject);
+dataStorage.deleteStorage("objectName");
 dataStorage.backup();
 dataStorage.flush();
 dataStorage.setLogger(loggerFunction);
+dataStorage.isInitialized("objectName");
 ```
 
 ## License

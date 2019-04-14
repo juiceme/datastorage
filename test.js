@@ -73,6 +73,16 @@ try {
     var backupFiles = fs.readdirSync("configuration/backup");
     assert(backupFiles.length === 2, "Two backup files should exist");
 
+    // deleting storage
+    assert(datastorage.deleteStorage("puusto") === false,
+	   "Deleting unexisting storage should return false");
+    assert(fs.existsSync("./configuration/suusto.json") === true,
+	   "Datastorage file exists before being deleted");
+    assert(datastorage.deleteStorage("suusto") === true,
+	   "Deleting initialized datastorage should succeed");
+    assert(fs.existsSync("./configuration/suusto.json") === false,
+	   "Datastorage file has been deleted");
+
 } catch(err) {
     console.log(err);
     process.exit(1);
